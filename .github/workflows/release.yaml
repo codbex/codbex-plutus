@@ -1,4 +1,4 @@
-name: Release - Module
+name: Release - Application
 
 on:
   workflow_dispatch:
@@ -11,24 +11,50 @@ on:
 run-name: 'version set to ${{ inputs.release-version }} for release'
 
 jobs:
-  main:
-    uses: codbex/codbex-infra/.github/workflows/module-release.yaml@main
+  application:
+    uses: codbex/codbex-infra/.github/workflows/application-release.yaml@main
     with:
-      packages: codbex-plutus
-      packages-build: codbex-plutus
+      application-name: codbex-plutus
+      install-dependencies: true
+      dockerfile-location: application/
       release-version: ${{ inputs.release-version }}
       release-content: |
         ## codbex-plutus - ${{ inputs.release-version }}
-        
-        Plutus Module
-        
-        ## Installation
-        
+  
+        Customer Management Application
+  
+        ## Deployment
+  
         ```
-        npm install @codbex/codbex-plutus@${{ inputs.release-version }}
+        docker run --name codbex-plutus \
+        --rm -p 80:80 \
+        ghcr.io/codbex/codbex-plutus:${{ inputs.release-version }}
         ```
-        
+
+        ### Sample Data
+
+        ```
+        docker run --name codbex-plutus-data-sample \
+        --rm -p 80:80 \
+        ghcr.io/codbex/codbex-plutus-data-sample:${{ inputs.release-version }}
+        ```
+  
         ## Access points:
-        
+  
         - [/services/web/codbex-plutus/gen/](http://localhost:80/services/web/codbex-plutus/gen/) - Admin Panel
+    secrets: inherit
+  application-data-sample:
+    uses: codbex/codbex-infra/.github/workflows/application-release.yaml@main
+    with:
+      application-name: codbex-plutus-data-sample
+      install-dependencies: true
+      dockerfile-location: application-data-sample/
+      release-version: ${{ inputs.release-version }}
+      release-create-branch: false
+    secrets: inherit
+  deploy:
+    needs: [application, application-data-sample]
+    uses: ./.github/workflows/deploy.yaml
+    with:
+      application-version: ${{ inputs.release-version }}
     secrets: inherit
