@@ -1,13 +1,22 @@
-name: Pull Request - Module
+name: Pull Request - Application
 
 on:
   pull_request:
-    branches:
+    branches: 
       - main
 
 jobs:
-  main:
-    uses: codbex/codbex-infra/.github/workflows/module-pull-request.yaml@main
+  application:
+    uses: codbex/codbex-infra/.github/workflows/application-pull-request.yaml@main
     with:
-      packages-build: codbex-plutus
+      application-name: codbex-plutus
+      install-dependencies: true
+      dockerfile-location: application/
+    secrets: inherit
+  application-data-sample:
+    uses: codbex/codbex-infra/.github/workflows/application-pull-request.yaml@main
+    with:
+      application-name: codbex-plutus-data-sample
+      install-dependencies: true
+      dockerfile-location: application-data-sample/
     secrets: inherit
