@@ -1,0 +1,28 @@
+name: Build - Application
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  application:
+    uses: codbex/codbex-infra/.github/workflows/application-build.yaml@main
+    with:
+      application-name: codbex-plutus
+      install-dependencies: true
+      dockerfile-location: application/
+    secrets: inherit
+  application-data-sample:
+    uses: codbex/codbex-infra/.github/workflows/application-build.yaml@main
+    with:
+      application-name: codbex-plutus-data-sample
+      install-dependencies: true
+      dockerfile-location: application-data-sample/
+    secrets: inherit
+  deploy:
+    needs: [application, application-data-sample]
+    uses: ./.github/workflows/deploy.yaml
+    with:
+      application-version: latest
+    secrets: inherit

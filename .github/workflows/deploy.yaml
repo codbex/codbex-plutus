@@ -1,0 +1,32 @@
+name: Deploy to Kubernetes
+
+on:
+  workflow_call:
+    inputs:
+      application-version:
+        type: string
+        default: latest
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set up Kubernetes
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+
+      - name: Create .kube directory
+        run: mkdir -p $HOME/.kube
+
+      - name: Authenticate with Kubernetes
+        env:
+          KUBECONFIG: ${{ secrets.KUBECONFIG }}
+        run: echo "${{ secrets.KUBECONFIG }}" > $HOME/.kube/config
+
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl scale deployments/codbex-plutus --replicas=0 -n prod
+          kubectl set image deployment/codbex-plutus codbex-plutus=ghcr.io/codbex/codbex-plutus-data-sample:${{ inputs.application-version }} -n prod
+          kubectl scale deployments/codbex-plutus --replicas=1 -n prod
